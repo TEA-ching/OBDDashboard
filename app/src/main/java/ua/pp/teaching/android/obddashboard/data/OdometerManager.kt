@@ -27,34 +27,32 @@ package ua.pp.teaching.android.obddashboard.data
 import android.content.Context
 import android.content.SharedPreferences
 
-/**
- * Manages persistent storage of odometer data
- */
+/** Manages persistent storage of odometer data */
 class OdometerManager(context: Context) {
-    
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
-        PREFS_NAME, Context.MODE_PRIVATE
-    )
-    
+
+    private val sharedPreferences: SharedPreferences =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
     companion object {
         private const val PREFS_NAME = "odometer_prefs"
         private const val KEY_TOTAL_ODOMETER_BASE = "total_odometer_base"
         private const val KEY_LAST_DISTANCE_SINCE_RESET = "last_distance_since_reset"
         private const val KEY_IS_INITIALIZED = "is_initialized"
     }
-    
+
     /**
      * Loads odometer data from SharedPreferences
      * @return OdometerData instance
      */
     fun loadOdometerData(): OdometerData {
         return OdometerData(
-            totalOdometerBase = sharedPreferences.getFloat(KEY_TOTAL_ODOMETER_BASE, 0f),
-            lastDistanceSinceReset = sharedPreferences.getFloat(KEY_LAST_DISTANCE_SINCE_RESET, 0f),
-            isInitialized = sharedPreferences.getBoolean(KEY_IS_INITIALIZED, false)
+                totalOdometerBase = sharedPreferences.getFloat(KEY_TOTAL_ODOMETER_BASE, 0f),
+                lastDistanceSinceReset =
+                        sharedPreferences.getFloat(KEY_LAST_DISTANCE_SINCE_RESET, 0f),
+                isInitialized = sharedPreferences.getBoolean(KEY_IS_INITIALIZED, false)
         )
     }
-    
+
     /**
      * Saves odometer data to SharedPreferences
      * @param data OdometerData to save
@@ -67,7 +65,7 @@ class OdometerManager(context: Context) {
             apply()
         }
     }
-    
+
     /**
      * Initializes odometer with user-provided base value
      * @param userOdometer User's actual odometer reading
@@ -75,14 +73,15 @@ class OdometerManager(context: Context) {
      */
     fun initializeOdometer(userOdometer: Float, currentDistanceSinceReset: Float) {
         val calculatedBase = userOdometer - currentDistanceSinceReset
-        val data = OdometerData(
-            totalOdometerBase = calculatedBase,
-            lastDistanceSinceReset = currentDistanceSinceReset,
-            isInitialized = true
-        )
+        val data =
+                OdometerData(
+                        totalOdometerBase = calculatedBase,
+                        lastDistanceSinceReset = currentDistanceSinceReset,
+                        isInitialized = true
+                )
         saveOdometerData(data)
     }
-    
+
     /**
      * Updates odometer data when new OBD reading is available
      * @param currentDistanceSinceReset Current distance since reset from OBD
@@ -90,24 +89,26 @@ class OdometerManager(context: Context) {
      */
     fun updateOdometerData(currentDistanceSinceReset: Float): OdometerData {
         val currentData = loadOdometerData()
-        
+
         if (!currentData.isInitialized) {
             // Return unchanged data if not initialized
             return currentData
         }
-        
+
         // Check for reset detection
         if (currentData.isResetDetected(currentDistanceSinceReset)) {
             // Reset detected - recalculate base using last known total and current reset value
-            val lastTotalOdometer = currentData.calculateTotalOdometer(currentData.lastDistanceSinceReset)
+            val lastTotalOdometer =
+                    currentData.calculateTotalOdometer(currentData.lastDistanceSinceReset)
             val newBase = lastTotalOdometer - currentDistanceSinceReset
-            
-            val updatedData = OdometerData(
-                totalOdometerBase = newBase,
-                lastDistanceSinceReset = currentDistanceSinceReset,
-                isInitialized = true
-            )
-            
+
+            val updatedData =
+                    OdometerData(
+                            totalOdometerBase = newBase,
+                            lastDistanceSinceReset = currentDistanceSinceReset,
+                            isInitialized = true
+                    )
+
             saveOdometerData(updatedData)
             return updatedData
         } else {
@@ -117,10 +118,8 @@ class OdometerManager(context: Context) {
             return updatedData
         }
     }
-    
-    /**
-     * Clears all stored odometer data
-     */
+
+    /** Clears all stored odometer data */
     fun clearOdometerData() {
         sharedPreferences.edit().clear().apply()
     }
