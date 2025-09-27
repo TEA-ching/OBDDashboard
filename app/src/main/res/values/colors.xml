@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+MIT License
+
+Copyright (c) 2025 Ronan Le Meillat - TEAChing
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_variant">#FF3700B3</color>
+    <color name="secondary">#FF03DAC5</color>
+
+    <!-- Dashboard colors -->
+    <color name="dashboard_background">#FF00040D</color>
+    <color name="gauge_normal">#FFFFFFFF</color>
+    <color name="gauge_warning">#FFFF9800</color>
+    <color name="gauge_danger">#FFF44336</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color>
+    <color name="divider_subtle">#33FFFFFF</color>
+    <color name="panel_primary">#1A112A5C</color>
+    <color name="panel_secondary">#33284060</color>
+    <color name="card_accent_speed">#FF1352FF</color>
+    <color name="card_accent_odometer">#FF1B1F2E</color>
+    <color name="status_badge_connected_bg">#3314D28C</color>
+    <color name="status_badge_disconnected_bg">#33F44336</color>
+
+    <!-- Settings screen colors -->
+    <color name="background_dark">#FF00040D</color>
+    <color name="card_background">#FF1A1F2E</color>
+    <color name="input_background">#FF2A2F3E</color>
+    <color name="border_color">#33FFFFFF</color>
+    <color name="gauge_primary">#FF1352FF</color>
+</resources>

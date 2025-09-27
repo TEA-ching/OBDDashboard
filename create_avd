@@ -1,0 +1,2 @@
+#!/bin/bash
+avdmanager create avd -n OBDDashboardAVD -k "system-images;android-26;google_apis;x86" -d 77 --force

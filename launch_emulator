@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -euo pipefail
+
+AVD_NAME="OBDDashboardAVD"
+EMULATOR_BIN="$ANDROID_HOME/emulator/emulator"
+
+if ! command -v "$EMULATOR_BIN" >/dev/null 2>&1; then
+	echo "Unable to locate emulator binary at $EMULATOR_BIN" >&2
+	exit 1
+fi
+
+LOG_DIR="${TMPDIR:-/tmp}/android-emulator"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/${AVD_NAME}-$(date +%Y%m%d-%H%M%S).log"
+
+echo "Starting Android emulator '$AVD_NAME' in background…"
+echo "Logs: $LOG_FILE"
+
+nohup "$EMULATOR_BIN" -avd "$AVD_NAME" >>"$LOG_FILE" 2>&1 &
+EMULATOR_PID=$!
+
+disown "$EMULATOR_PID" 2>/dev/null || true
+
+echo "Emulator process launched with PID $EMULATOR_PID"
+echo "Use './adb devices' to check when it finishes booting."
