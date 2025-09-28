@@ -1,0 +1,3 @@
+[submodule "AndroidOBD"]
+	path = AndroidOBD
+	url = git@github.com:TEA-ching/AndroidOBD.git
