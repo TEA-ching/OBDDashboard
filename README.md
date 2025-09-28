@@ -194,6 +194,55 @@ The project follows Android best practices:
 - SharedPreferences for data persistence
 - Material Design components
 
+### MockBluetoothSocket for Development
+
+When developing on Android emulators or devices without Bluetooth capability, the application automatically falls back to a `MockBluetoothSocket` that simulates realistic OBD-II adapter behavior.
+
+#### Features of MockBluetoothSocket
+
+**ELM327 Command Simulation:**
+- Responds to all standard ELM327 AT commands (ATZ, ATE0, ATL0, ATS0, ATH0, AT SP0, AT ST19)
+- Simulates proper initialization sequence required by the AndroidOBD library
+- Returns appropriate responses ("OK", version strings) to ensure successful connection
+
+**Realistic Vehicle Data Simulation:**
+
+1. **Engine RPM (PID 01 0C)**:
+   - Simulates engine idle around 867 RPM (realistic idle speed)
+   - Natural fluctuations using sine wave (±15 RPM) + random variation (±5 RPM)
+   - Constrained between 850-890 RPM for realistic idle behavior
+
+2. **Coolant Temperature (PID 01 05)**:
+   - Cold start simulation: begins at 19°C (ambient temperature)
+   - Progressive warmup over 5 minutes to 67°C (normal operating temperature)
+   - **Thermostat simulation with hysteresis**:
+     - Thermostat opens at 85°C allowing coolant circulation
+     - Thermostat closes at 82°C (3°C hysteresis prevents oscillation)
+     - Temperature oscillates ±2°C around target when thermostat is open
+   - Realistic engine warmup curve matching real vehicle behavior
+
+3. **Vehicle Speed (PID 01 0D)**: Returns 0 km/h (stationary)
+
+4. **Other PIDs**: 
+   - Supported PIDs (01 00): Returns capability mask
+   - Distance since DTC reset (01 31): Fixed 100 km
+   - Fuel level (01 2F): Fixed 75%
+
+**Usage:**
+```kotlin
+// Automatically used when real Bluetooth is unavailable
+val mockSocket = MockBluetoothSocket()
+val obdManager = OBDManager(mockSocket)
+```
+
+This mock implementation allows developers to:
+- Test the application on emulators without Bluetooth hardware
+- Verify UI behavior with realistic, changing data
+- Debug OBD communication logic without physical hardware
+- Demonstrate the application with convincing simulated vehicle data
+
+The mock follows the same interface as real Bluetooth sockets, making it a seamless drop-in replacement for development and testing purposes.
+
 ## License
 
 This project is developed for OBD-II vehicle monitoring purposes.

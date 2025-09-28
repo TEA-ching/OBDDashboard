@@ -35,6 +35,18 @@ class MockBluetoothSocket : OBDAdapterSocket {
     private var responseBytes: ByteArray? = null
     private var responsePos = 0
 
+    // Variables for realistic RPM simulation (engine idle around 867 RPM)
+    private var baseRpm = 867.0
+    private var rpmVariation = 0.0
+    private var lastRpmTime = System.currentTimeMillis()
+
+    // Variables for realistic temperature simulation
+    private val startTime = System.currentTimeMillis()
+    private val coldTemp = 19.0 // °C - Cold engine temperature
+    private val operatingTemp = 67.0 // °C - Normal operating temperature
+    private val warmupTimeMs = 5 * 60 * 1000L // 5 minutes in milliseconds
+    private var thermostatOpen = false
+
     override val inputStream = MockInputStream()
     override val outputStream = MockOutputStream()
     override val isConnected = true
@@ -98,10 +110,10 @@ class MockBluetoothSocket : OBDAdapterSocket {
 
                     // OBD-II PIDs
                     "01 00" -> "4100BE3EA813\r\n" // Supported PIDs 01-20
-                    "01 0C" -> "410C1AF8\r\n" // RPM: ((26*256)+248)/4 = 6904/4 = 1726 RPM
-                    "01 0D" -> "410D50\r\n" // Speed: 80 km/h
-                    "01 05" -> "41056B\r\n" // Coolant Temp: 67°C (formula: A-40, so A=107 ->
-                    // 107-40=67)
+                    "01 0C" -> generateRpmResponse() // RPM: Variable around 867 RPM (idle)
+                    "01 0D" -> "410D00\r\n" // Speed: 00 km/h
+                    "01 05" ->
+                            generateTemperatureResponse() // Coolant Temp: Progressive 19°C -> 67°C
                     "01 31" -> "41310064\r\n" // Distance: 100 km
                     "01 2F" ->
                             "412FBF\r\n" // Fuel Level: 75% (formula: (100/255)*A, so A=191 -> ~75%)
@@ -112,5 +124,80 @@ class MockBluetoothSocket : OBDAdapterSocket {
                 }
         Log.d("MockBluetoothSocket", "Sending response: $response")
         return response.toByteArray()
+    }
+
+    /**
+     * Generates a realistic RPM response simulating engine idle around 867 RPM with natural
+     * fluctuations between 850-890 RPM
+     */
+    private fun generateRpmResponse(): String {
+        val currentTime = System.currentTimeMillis()
+        lastRpmTime = currentTime
+
+        // Simulate natural engine idle fluctuations
+        // Use sine wave for smooth variation + small random component
+        val timeInSeconds = currentTime / 1000.0
+        val sineVariation = kotlin.math.sin(timeInSeconds * 0.5) * 15.0 // ±15 RPM sine wave
+        val randomVariation = (Math.random() - 0.5) * 10.0 // ±5 RPM random
+
+        rpmVariation = sineVariation + randomVariation
+        val currentRpm = (baseRpm + rpmVariation).coerceIn(850.0, 890.0)
+
+        // Convert RPM to OBD-II format: RPM = ((A*256)+B)/4
+        // So (A*256)+B = RPM * 4
+        val rpmValue = (currentRpm * 4).toInt()
+        val byteA = (rpmValue shr 8) and 0xFF
+        val byteB = rpmValue and 0xFF
+
+        val response =
+                "410C${byteA.toString(16).uppercase().padStart(2, '0')}${byteB.toString(16).uppercase().padStart(2, '0')}\r\n"
+        Log.d("MockBluetoothSocket", "Generated RPM: ${currentRpm.toInt()} RPM -> $response")
+        return response
+    }
+
+    /**
+     * Generates a realistic temperature response simulating engine warmup from 19°C (cold) to 67°C
+     * (operating) over 5 minutes with thermostat hysteresis
+     */
+    private fun generateTemperatureResponse(): String {
+        val currentTime = System.currentTimeMillis()
+        val elapsedTime = currentTime - startTime
+        val warmupProgress = (elapsedTime.toDouble() / warmupTimeMs).coerceIn(0.0, 1.0)
+
+        var currentTemp: Double
+
+        if (!thermostatOpen) {
+            // Thermostat closed: slow linear warmup to ~85°C (thermostat opening temp)
+            val thermostatOpenTemp = 85.0
+            currentTemp = coldTemp + (thermostatOpenTemp - coldTemp) * warmupProgress
+
+            // Open thermostat when reaching opening temperature
+            if (currentTemp >= thermostatOpenTemp) {
+                thermostatOpen = true
+                Log.d("MockBluetoothSocket", "Thermostat opened at ${currentTemp.toInt()}°C")
+            }
+        } else {
+            // Thermostat open: quick drop to operating temperature with small oscillations
+            val targetTemp = operatingTemp
+            val oscillation = kotlin.math.sin(currentTime / 10000.0) * 2.0 // ±2°C oscillation
+            currentTemp = targetTemp + oscillation
+
+            // Hysteresis: close thermostat if temp drops below 82°C
+            if (currentTemp < 82.0) {
+                thermostatOpen = false
+                Log.d("MockBluetoothSocket", "Thermostat closed at ${currentTemp.toInt()}°C")
+            }
+        }
+
+        // Convert temperature to OBD-II format: Temp = A - 40
+        // So A = Temp + 40
+        val tempValue = (currentTemp + 40).toInt().coerceIn(0, 255)
+        val response = "4105${tempValue.toString(16).uppercase().padStart(2, '0')}\r\n"
+
+        Log.d(
+                "MockBluetoothSocket",
+                "Generated Temp: ${currentTemp.toInt()}°C (thermostat: ${if (thermostatOpen) "open" else "closed"}) -> $response"
+        )
+        return response
     }
 }
