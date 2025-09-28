@@ -7,6 +7,8 @@ on:
 permissions:
   contents: write
   actions: read
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -99,6 +101,11 @@ jobs:
           find ./app/build -name "*.apk" -type f
           exit 1
         fi
+
+    - name: Generate attestation for APK
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: './app/build/outputs/apk/release/app-release.apk'
 
     - name: Upload APK to Release
       run: |

@@ -86,8 +86,61 @@ You also need to add your `keystore.jks` file to the repository (preferably in a
 
 The workflow will automatically:
 - Build a signed release APK using your keystore
-- Upload the APK as a release asset named `OBD-Dashboard-v1.0.0.apk`
+- Generate a cryptographic attestation for the APK
+- Upload the APK as a release asset named `app-release.apk`
 - Make it available for download to your users
+
+### APK Verification
+
+For security purposes, you can verify the authenticity and integrity of downloaded APKs using multiple methods:
+
+#### 1. GitHub Attestation Verification
+
+Verify that the APK was built by our official GitHub workflow:
+
+```bash
+# Install GitHub CLI if not already installed
+# https://cli.github.com/
+
+# Verify the APK attestation
+gh attestation verify app-release.apk --owner TEA-ching
+```
+
+This will verify:
+- The APK was built by the official GitHub Actions workflow
+- The exact commit SHA used for the build
+- The build environment and timestamp
+- The cryptographic integrity of the file
+
+#### 2. APK Signature Verification
+
+Verify the APK was signed with our official certificate:
+
+```bash
+# Extract certificate information from the APK
+jarsigner -verify -verbose -certs app-release.apk
+
+# Or using apksigner (Android SDK)
+apksigner verify --print-certs app-release.apk
+```
+
+**Expected Certificate Fingerprint (SHA-256):**
+```
+14:BA:42:E4:30:C4:45:48:3E:60:A5:8D:F6:CB:6D:A8:30:A3:0C:A0:55:78:FD:A3:32:71:D2:99:95:FC:38:09
+```
+
+⚠️ **Security Warning**: Only install APKs that match this exact certificate fingerprint. Any APK with a different fingerprint should be considered potentially malicious.
+
+#### 3. Hash Verification
+
+You can also verify file integrity using checksums (provided in release notes):
+
+```bash
+# Generate SHA-256 hash of the downloaded APK
+sha256sum app-release.apk
+
+# Compare with the hash provided in the GitHub release
+```
 
 ## Building
 
