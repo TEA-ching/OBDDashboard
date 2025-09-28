@@ -17,6 +17,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: 8.14.3
+    
+    - name: Configure Kotlin version
+      run: echo "kotlin_version=2.2.0" >> gradle.properties
+    
     - name: Cache Gradle packages
       uses: actions/cache@v4
       with:
@@ -35,10 +43,45 @@ jobs:
         echo $SIGNING_KEYSTORE | base64 --decode > keystore.jks
       env:
         SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
+    
+    - name: Verify keystore and secrets
+      run: |
+        echo "Checking keystore file..."
+        if [ ! -f "keystore.jks" ]; then
+          echo "❌ keystore.jks not found!"
+          exit 1
+        fi
+        echo "✅ keystore.jks exists"
+        
+        echo "Checking secrets..."
+        if [ -z "$SIGNING_KEY_ALIAS" ]; then
+          echo "❌ SIGNING_KEY_ALIAS is not set"
+          exit 1
+        fi
+        if [ -z "$SIGNING_STORE_PASSWORD" ]; then
+          echo "❌ SIGNING_STORE_PASSWORD is not set"
+          exit 1
+        fi
+        echo "✅ Secrets are configured"
+        
+        echo "Testing keystore access..."
+        if keytool -list -keystore keystore.jks -storepass "$SIGNING_STORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" >/dev/null 2>&1; then
+          echo "✅ Keystore and alias are valid"
+        else
+          echo "❌ Failed to access keystore with provided credentials"
+          echo "Testing with keytool -list for more details:"
+          keytool -list -keystore keystore.jks -storepass "$SIGNING_STORE_PASSWORD" 2>&1 || echo "Keytool failed"
+          exit 1
+        fi
+      env:
+        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
     - name: Build Release APK
       run: |
         echo "SIGNING_KEY_ALIAS: $SIGNING_KEY_ALIAS"
         echo "SIGNING_STORE_PASSWORD: $SIGNING_STORE_PASSWORD"
+        echo "SIGNING_KEY_PASSWORD: $SIGNING_KEY_PASSWORD"
+        
         echo "Test if keystore.jks exists and is valid"
         if [ -f "keystore.jks" ]; then
           echo "✅ keystore.jks found!"
@@ -47,6 +90,8 @@ jobs:
           echo "❌ keystore.jks not found!"
           exit 1
         fi
+        
+        echo "Building release APK..."
         ./gradlew assembleRelease --no-daemon
       env:
         SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
