@@ -88,7 +88,7 @@ class MockBluetoothSocket : OBDAdapterSocket {
                     // ELM327 AT Commands (various formats)
                     "ATD",
                     "AT D" -> "OK\r\n" // Set defaults
-                    "ATZ", "AT Z" -> "ELM327 v1.5\r\n" // Reset - returns version
+                    "ATZ", "AT Z" -> "OK\r\n" // Reset - simplified response
                     "ATE0", "AT E0" -> "OK\r\n" // Extended responses off
                     "ATL0", "AT L0" -> "OK\r\n" // Line feeds off
                     "ATS0", "AT S0" -> "OK\r\n" // Printing spaces off
