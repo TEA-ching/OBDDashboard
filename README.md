@@ -40,6 +40,11 @@ The application implements intelligent odometer calculation:
 3. **Reset Detection**: Automatically detects when DTC codes are cleared and adjusts base value
 4. **Persistence**: Stores odometer data locally for continuity across app restarts
 
+## Screenshots
+<img width="1024" height="600" alt="Screenshot_1759062968" src="https://github.com/user-attachments/assets/17741e9c-f846-41c6-97d8-db64f3830701" />  
+<img width="1024" height="600" alt="Screenshot_1758996650" src="https://github.com/user-attachments/assets/e4f01419-44b4-40d8-a40e-4f71983f81e1" />
+
+
 ## Installation
 
 1. Build the project using Gradle
