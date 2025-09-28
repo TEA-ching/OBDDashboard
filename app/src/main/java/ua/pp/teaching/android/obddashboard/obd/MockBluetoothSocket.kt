@@ -82,16 +82,32 @@ class MockBluetoothSocket : OBDAdapterSocket {
 
     private fun getResponseForCommand(command: String): ByteArray {
         Log.d("MockBluetoothSocket", "Received command: $command")
+        val cleanCommand = command.uppercase().trim()
         val response =
-                when (command) {
+                when (cleanCommand) {
+                    // ELM327 AT Commands (from ObdInitSequence)
+                    "ATD" -> "OK\r\n" // Set defaults
+                    "ATZ" -> "ELM327 v1.5\r\n" // Reset - returns version
+                    "ATE0" -> "OK\r\n" // Extended responses off
+                    "ATL0" -> "OK\r\n" // Line feeds off
+                    "ATS0" -> "OK\r\n" // Printing spaces off
+                    "ATH0" -> "OK\r\n" // Headers off
+                    "AT SP0" -> "OK\r\n" // Set protocol to auto
+                    "AT ST19" -> "OK\r\n" // Set timeout (0x19 = 25 decimal)
+
+                    // OBD-II PIDs
+                    "01 00" -> "4100BE3EA813\r\n" // Supported PIDs 01-20
                     "01 0C" -> "410C1AF8\r\n" // RPM: ((26*256)+248)/4 = 6904/4 = 1726 RPM
-                    "01 0D" -> "410D00\r\n" // Speed: 0 km/h
-                    "01 05" ->
-                            "41056B\r\n" // Coolant Temp: 67°C (formula: A-40, so A=67 -> 107-40=67)
+                    "01 0D" -> "410D50\r\n" // Speed: 80 km/h
+                    "01 05" -> "41056B\r\n" // Coolant Temp: 67°C (formula: A-40, so A=107 ->
+                    // 107-40=67)
                     "01 31" -> "41310064\r\n" // Distance: 100 km
-                    "01 2F" -> "412FBF\r\n" // Fuel Level: 75% (formula: (100/255)*A, so A=191 ->
-                    // (100/255)*191≈75%)
-                    else -> "NODATA\r\n"
+                    "01 2F" ->
+                            "412FBF\r\n" // Fuel Level: 75% (formula: (100/255)*A, so A=191 -> ~75%)
+                    else -> {
+                        Log.w("MockBluetoothSocket", "Unknown command: $command")
+                        "NO DATA\r\n"
+                    }
                 }
         Log.d("MockBluetoothSocket", "Sending response: $response")
         return response.toByteArray()
