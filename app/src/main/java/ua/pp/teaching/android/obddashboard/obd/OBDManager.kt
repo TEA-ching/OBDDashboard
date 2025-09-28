@@ -29,6 +29,7 @@ import java.io.IOException
 import kotlinx.coroutines.*
 import ua.pp.teaching.android.obd.commands.OBDCommand
 import ua.pp.teaching.android.obd.enums.ObdModes
+import ua.pp.teaching.android.obd.statics.ObdInitSequence
 import ua.pp.teaching.android.obd.statics.PIDUtils
 
 /** Manages OBD-II communication using the AndroidOBD library */
@@ -87,7 +88,16 @@ class OBDManager {
 
             Log.d(TAG, "Attempting to connect to OBD adapter...")
 
-            // Assume connection is ready, start data updates
+            // Initialize OBD adapter using AndroidOBD library's official sequence
+            val initSuccess = ObdInitSequence.run(socket.inputStream, socket.outputStream)
+            if (!initSuccess) {
+                Log.e(TAG, "Failed to initialize OBD adapter")
+                isConnected = false
+                onConnectionStatusChanged?.invoke(false)
+                return false
+            }
+
+            // Connection established, start data updates
             isConnected = true
             onConnectionStatusChanged?.invoke(true)
             startDataUpdates()

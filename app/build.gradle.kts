@@ -33,7 +33,7 @@ android {
                     getDefaultProguardFile("proguard-android-optimize.txt"),
                     "proguard-rules.pro"
             )
-                        // Apply signing config only if SIGNING_KEY_ALIAS is set
+            // Apply signing config only if SIGNING_KEY_ALIAS is set
             if (System.getenv("SIGNING_KEY_ALIAS") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }

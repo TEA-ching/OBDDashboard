@@ -85,15 +85,16 @@ class MockBluetoothSocket : OBDAdapterSocket {
         val cleanCommand = command.uppercase().trim()
         val response =
                 when (cleanCommand) {
-                    // ELM327 AT Commands (from ObdInitSequence)
-                    "ATD" -> "OK\r\n" // Set defaults
-                    "ATZ" -> "ELM327 v1.5\r\n" // Reset - returns version
-                    "ATE0" -> "OK\r\n" // Extended responses off
-                    "ATL0" -> "OK\r\n" // Line feeds off
-                    "ATS0" -> "OK\r\n" // Printing spaces off
-                    "ATH0" -> "OK\r\n" // Headers off
-                    "AT SP0" -> "OK\r\n" // Set protocol to auto
-                    "AT ST19" -> "OK\r\n" // Set timeout (0x19 = 25 decimal)
+                    // ELM327 AT Commands (various formats)
+                    "ATD",
+                    "AT D" -> "OK\r\n" // Set defaults
+                    "ATZ", "AT Z" -> "ELM327 v1.5\r\n" // Reset - returns version
+                    "ATE0", "AT E0" -> "OK\r\n" // Extended responses off
+                    "ATL0", "AT L0" -> "OK\r\n" // Line feeds off
+                    "ATS0", "AT S0" -> "OK\r\n" // Printing spaces off
+                    "ATH0", "AT H0" -> "OK\r\n" // Headers off
+                    "AT SP0", "AT SP 0" -> "OK\r\n" // Set protocol to auto
+                    "AT ST19", "AT ST 19" -> "OK\r\n" // Set timeout (0x19 = 25 decimal)
 
                     // OBD-II PIDs
                     "01 00" -> "4100BE3EA813\r\n" // Supported PIDs 01-20
