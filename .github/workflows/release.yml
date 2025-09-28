@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -97,11 +101,9 @@ jobs:
         fi
 
     - name: Upload APK to Release
-      uses: actions/upload-release-asset@v1
+      run: |
+        gh release upload ${{ github.event.release.tag_name }} \
+          ./app/build/outputs/apk/release/app-release.apk \
+          --clobber
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./app/build/outputs/apk/release/app-release.apk
-        asset_name: OBD-Dashboard-${{ github.event.release.tag_name }}.apk
-        asset_content_type: application/vnd.android.package-archive
